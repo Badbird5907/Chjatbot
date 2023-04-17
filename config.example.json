@@ -1,0 +1,8 @@
+{
+  "token": "your discord bot token here",
+  "openAiKey": "your open ai key here",
+  "persistentChatLength": 100,
+  "owners": [
+    "your discord id here"
+  ]
+}

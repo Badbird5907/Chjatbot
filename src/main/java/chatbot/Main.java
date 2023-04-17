@@ -30,6 +30,7 @@ public class Main {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
     @Getter
     private Config config;
+    @Getter
     private JDA jda;
     @Getter
     private OpenAiService openAiService;
