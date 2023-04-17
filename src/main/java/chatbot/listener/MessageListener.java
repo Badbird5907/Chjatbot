@@ -12,10 +12,7 @@ public class MessageListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         System.out.println("Message received from " + event.getAuthor().getAsTag() + ": " + event.getMessage().getContentRaw());
-        // check if the message starts with a @ mention of the bot
-        if (event.getMessage().getContentRaw().startsWith("<@" + event.getJDA().getSelfUser().getId() + ">")) {
-            ChatManager.getInstance().onMessageReceived(event.getMessage());
-        }
+        ChatManager.getInstance().onMessageReceived(event.getMessage());
     }
 
     @Override
