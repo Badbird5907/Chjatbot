@@ -12,4 +12,6 @@ public class Config {
     private boolean mention;
     private List<Long> owners;
     private int persistentChatLength; // max number of messages to remember, set to 0 to disable
+    private int maxTokens;
+
 }

@@ -65,12 +65,15 @@ public class ChatManager {
             message.getChannel().sendTyping().queue();
             List<ChatMessage> copy = new ArrayList<>(chatMessages); // make a copy of the list to inject the prompt message at the top without modifying the original list
             copy.add(0, getPromptMessage()); // add prompt message to the beginning
+            System.out.println(" - Sending chat completion request with " + copy.size() + " messages");
             ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
                     .messages(copy)
                     .model(Main.getInstance().getConfig().getChatGptModel())
+                    .maxTokens(Main.getInstance().getConfig().getMaxTokens())
+                    .user(message.getAuthor().getId())
                     .build();
             ChatCompletionResult completion = Main.getInstance().getOpenAiService().createChatCompletion(completionRequest);
-            completion.getChoices().forEach(System.out::println);
+            completion.getChoices().forEach(o -> System.out.println(" - Response: " + o.getMessage().getContent()));
             String response = completion.getChoices().get(0).getMessage().getContent();
             message.reply(response).queue();
             chatMessages.add(new ChatMessage(ChatMessageRole.ASSISTANT.value(), response));

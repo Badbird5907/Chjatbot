@@ -5,6 +5,7 @@
   },
   "token": "your discord bot token here",
   "openAiKey": "your open ai key here",
+  "maxTokens": 100,
   "chatGptModel": "gpt-3.5-turbo",
   "mention": true,
   "prefix": "!",
