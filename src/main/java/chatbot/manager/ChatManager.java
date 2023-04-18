@@ -138,7 +138,6 @@ public class ChatManager {
                 There are also ~~strikethroughs~~, **bold**, *italics*, and __underline__.
                 You can also use emojis like this: :smile:
                 """;
-        System.out.println(prompt);
         return new ChatMessage(ChatMessageRole.SYSTEM.value(), prompt
         );
     }
