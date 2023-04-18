@@ -1,4 +1,8 @@
 {
+  "storageProvider": "FileStorageProvider",
+  "storageProviderOptions": {
+    "dataPath": "./data"
+  },
   "token": "your discord bot token here",
   "openAiKey": "your open ai key here",
   "chatGptModel": "gpt-3.5-turbo",

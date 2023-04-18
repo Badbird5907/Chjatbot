@@ -6,14 +6,9 @@ import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 
-import java.io.File;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,32 +23,8 @@ public class ChatManager {
     private static final ScheduledExecutorService threadPool = Executors.newSingleThreadScheduledExecutor();
     @Getter
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy");
-
-    private List<ChatMessage> chatMessages = new ArrayList<>();
-
-    @SneakyThrows
     public void init() {
-        File messagesFile = new File("messages.json");
-        if (messagesFile.exists()) {
-            String data = new String(Files.readAllBytes(messagesFile.toPath()));
-            Type type = new com.google.gson.reflect.TypeToken<ArrayList<ChatMessage>>() {
-            }.getType();
-            chatMessages = Main.getGson().fromJson(data, type);
-        }
     }
-
-    public void save() {
-        List<ChatMessage> chatMessages = new ArrayList<>(this.chatMessages);
-        chatMessages.remove(0);
-        String data = Main.getGson().toJson(chatMessages);
-        File messagesFile = new File("messages.json");
-        try {
-            Files.write(messagesFile.toPath(), data.getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void onMessageReceived(Message message) {
         String content = message.getContentDisplay().trim();
         if (content.isEmpty()) return;
@@ -82,19 +53,20 @@ public class ChatManager {
             sb.append(" (in reply to message \"").append(contentDisplay).append("\" id ").append(referencedMessage.getId()).append(" at ").append(dateFormat.format(Date.from(referencedMessage.getTimeCreated().toInstant()))).append(")");
         }
         sb.append(": ").append(content);
-        System.out.println(sb.toString());
+        System.out.println(sb);
         ChatMessage chatMessage = new ChatMessage(ChatMessageRole.USER.value(), sb.toString());
+        List<ChatMessage> chatMessages = Main.getInstance().getStorageProvider().load(message.getChannel().getIdLong());
         chatMessages.add(chatMessage);
-        askChatGpt(message);
+        askChatGpt(message, chatMessages);
     }
 
-    public void askChatGpt(Message message) {
+    public void askChatGpt(Message message, List<ChatMessage> chatMessages) {
         threadPool.submit(() -> {
             message.getChannel().sendTyping().queue();
-            List<ChatMessage> chatMessages = new ArrayList<>(this.chatMessages);
-            chatMessages.add(getPromptMessage());
+            List<ChatMessage> copy = new ArrayList<>(chatMessages); // make a copy of the list to inject the prompt message at the top without modifying the original list
+            copy.add(0, getPromptMessage()); // add prompt message to the beginning
             ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
-                    .messages(chatMessages)
+                    .messages(copy)
                     .model(Main.getInstance().getConfig().getChatGptModel())
                     .build();
             ChatCompletionResult completion = Main.getInstance().getOpenAiService().createChatCompletion(completionRequest);
@@ -102,6 +74,7 @@ public class ChatManager {
             String response = completion.getChoices().get(0).getMessage().getContent();
             message.reply(response).queue();
             chatMessages.add(new ChatMessage(ChatMessageRole.ASSISTANT.value(), response));
+            Main.getInstance().getStorageProvider().save(message.getChannel().getIdLong(), chatMessages);
         });
     }
 

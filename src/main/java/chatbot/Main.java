@@ -3,6 +3,7 @@ package chatbot;
 import chatbot.listener.MessageListener;
 import chatbot.manager.ChatManager;
 import chatbot.objects.Config;
+import chatbot.storage.StorageProvider;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.theokanning.openai.service.OpenAiService;
@@ -34,6 +35,8 @@ public class Main {
     private JDA jda;
     @Getter
     private OpenAiService openAiService;
+    @Getter
+    private StorageProvider storageProvider;
     public static void main(String[] args) {
         instance.init();
     }
@@ -58,6 +61,11 @@ public class Main {
         System.out.println("Bot is ready!");
         System.out.println("Logged in as " + jda.getSelfUser().getAsTag() + " (ID: " + jda.getSelfUser().getId() + ")");
 
+        System.out.println("Initializing storage provider...");
+        String packageName = StorageProvider.class.getPackage().getName() + ".impl.";
+        storageProvider = Class.forName(packageName + config.getStorageProvider()).asSubclass(StorageProvider.class).newInstance();
+        storageProvider.init(config.getStorageProviderOptions());
+
         System.out.println("Initializing Slash Commands...");
         List<SlashCommandData> slashCommands = new ArrayList<>();
         slashCommands.add(
@@ -77,8 +85,9 @@ public class Main {
         ChatManager.getInstance().init();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Saving chat messages...");
-            ChatManager.getInstance().save();
+            System.out.println("Saving...");
+            storageProvider.disable(config.getStorageProviderOptions());
         }));
+        System.out.println("Done!");
     }
 }
