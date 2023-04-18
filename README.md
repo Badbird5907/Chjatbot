@@ -1,6 +1,8 @@
 # ChjatBot
 The one and only chatbot that will insult you and make you question your life choices. Need some sass and sarcasm in your chat? Look no further than ChjatBot.
 
+Basically a VALORANT/Csgo/COD player, minus the racism.
+
 https://discord.badbird.dev/
 
 # Usage
