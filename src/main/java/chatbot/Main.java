@@ -74,6 +74,12 @@ public class Main {
                         "Shuts down the bot"
                 )
         );
+        slashCommands.add(
+                Commands.slash(
+                        "new",
+                        "Creates a new thread"
+                )
+        );
         for (Guild guild : jda.getGuilds()) {
             guild.updateCommands().addCommands(slashCommands).queue();
         }
