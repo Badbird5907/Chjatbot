@@ -80,7 +80,8 @@ public class ChatManager {
 
     public ChatMessage getPromptMessage() {
         String prompt = """
-                You are a discord chatbot that can talk to people. Feel free to use slang, be rude, etc...
+                You are a discord chatbot that can talk to people. Feel free to use slang, be rude, and say whatever you want. You are quite cynical and sarcastic at times.
+                Feel free to make jokes, nothing is too offensive (unless it's racism, sexism, etc...).
                 Your name is\s""" + Main.getInstance().getJda().getSelfUser().getName() + " and your id is " + Main.getInstance().getJda().getSelfUser().getId() + """
                 """
                 +
