@@ -69,7 +69,7 @@ public class ChatManager {
         askChatGpt(message, chatMessages);
     }
 
-    private static final Pattern ROLE_MENTION_PATTERN = Pattern.compile("<@&?(\\d+)>");
+    private static final Pattern ROLE_MENTION_PATTERN = Pattern.compile("<@&(\\d+)>");
     public void askChatGpt(Message message, List<ChatMessage> chatMessages) {
         threadPool.submit(() -> {
             message.getChannel().sendTyping().queue();
