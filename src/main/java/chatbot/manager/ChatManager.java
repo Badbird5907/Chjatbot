@@ -43,7 +43,7 @@ public class ChatManager {
         Date date = new Date();
         StringBuilder sb = new StringBuilder(message.getAuthor().getAsTag() + " (ID: " + message.getAuthor().getId() + ")" + "(Msg ID " + message.getId() + ")" + "(CT: " + message.getChannelType() + ")").append("(at ").append(dateFormat.format(date)).append(")(Unix Millis ").append(System.currentTimeMillis()).append(")");
         if (message.getChannelType() == ChannelType.TEXT) {
-            sb.append(" in guild \"").append(message.getGuild().getName()).append("\"");
+            sb.append(" (in server \"").append(message.getGuild().getName()).append("\")");
         }
         if (referencedMessage != null) {
             String contentDisplay = referencedMessage.getContentDisplay();
@@ -94,7 +94,7 @@ public class ChatManager {
                 """
                 You can respond to users by using this syntax: <@id>
                 The messages from users will be in the form below:
-                User#1234 (ID: 456951144166457345)(Msg ID 1097649592570486855)(CT: TEXT)(at Mon Apr 17 18:36:33 2023)(Unix Millis 1681770993540) in guild "<guild name>": <the user's message here>
+                User#1234 (ID: 456951144166457345)(Msg ID 1097649592570486855)(CT: TEXT)(at Mon Apr 17 18:36:33 2023)(Unix Millis 1681770993540) (in server "<server name>"): <the user's message here>
                 You respond with:
                 blah blah <@456951144166457345> blah blah
                 (CT: TEXT) means the message was sent in a text channel, (CT: PRIVATE) means the message was sent in a private channel, etc...
