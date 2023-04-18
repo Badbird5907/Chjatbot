@@ -76,9 +76,14 @@ public class ChatManager {
             List<ChatMessage> copy = new ArrayList<>(chatMessages); // make a copy of the list to inject the prompt message at the top without modifying the original list
             copy.add(0, getPromptMessage(message.getChannel())); // add prompt message to the beginning
             System.out.println(" - Sending chat completion request with " + copy.size() + " messages");
+            String model = Main.getInstance().getConfig().getChatGptModel();
+            if (message.getChannel() instanceof TextChannel tc) {
+                if (Main.getInstance().getGpt4Channels().contains(tc.getIdLong()))
+                    model = "gpt-4";
+            }
             ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
                     .messages(copy)
-                    .model(Main.getInstance().getConfig().getChatGptModel())
+                    .model(model)
                     .maxTokens(Main.getInstance().getConfig().getMaxTokens())
                     .user(message.getAuthor().getId())
                     .build();

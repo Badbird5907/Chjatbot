@@ -6,6 +6,7 @@ import chatbot.objects.Config;
 import chatbot.storage.StorageProvider;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.theokanning.openai.service.OpenAiService;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -18,10 +19,10 @@ import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Main {
     @Getter
@@ -37,9 +38,13 @@ public class Main {
     private OpenAiService openAiService;
     @Getter
     private StorageProvider storageProvider;
+    @Getter
+    private Set<Long> gpt4Channels = new HashSet<>();
+
     public static void main(String[] args) {
         instance.init();
     }
+
     @SneakyThrows
     public void init() {
         if (!configFile.exists()) {
@@ -66,6 +71,25 @@ public class Main {
         storageProvider = Class.forName(packageName + config.getStorageProvider()).asSubclass(StorageProvider.class).newInstance();
         storageProvider.init(config.getStorageProviderOptions());
 
+        File gpt4File = new File("gpt4.json");
+        if (!gpt4File.exists()) {
+            try {
+                gpt4File.createNewFile();
+                String gpt4Data;
+                try {
+                    gpt4Data = new String(Files.readAllBytes(gpt4File.toPath()));
+                    Type type = new TypeToken<HashSet<Long>>() {
+                    }.getType();
+                    gpt4Channels = new HashSet<>(Main.getGson().fromJson(gpt4Data, type));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
         System.out.println("Initializing Slash Commands...");
         List<SlashCommandData> slashCommands = new ArrayList<>();
         slashCommands.add(
@@ -86,6 +110,12 @@ public class Main {
                         "Reset chat history, useful if the bot becomes too nice"
                 )
         );
+        slashCommands.add(
+                Commands.slash(
+                        "gpt4",
+                        "Toggle GPT-4 for a channel - Bot owner only due to cost"
+                )
+        );
         for (Guild guild : jda.getGuilds()) {
             guild.updateCommands().addCommands(slashCommands).queue();
         }
@@ -99,6 +129,13 @@ public class Main {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Saving...");
             storageProvider.disable(config.getStorageProviderOptions());
+            System.out.println("Saving GPT-4 channels...");
+            String gpt4Data = gson.toJson(gpt4Channels);
+            try {
+                Files.write(gpt4File.toPath(), gpt4Data.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }));
         System.out.println("Done!");
     }
