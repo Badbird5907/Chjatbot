@@ -8,11 +8,15 @@ import com.theokanning.openai.completion.chat.ChatMessageRole;
 import lombok.Getter;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -41,10 +45,7 @@ public class ChatManager {
         }
         System.out.println("Message received from " + message.getAuthor().getAsTag() + ": " + content);
         Date date = new Date();
-        StringBuilder sb = new StringBuilder(message.getAuthor().getAsTag() + " (ID: " + message.getAuthor().getId() + ")" + "(Msg ID " + message.getId() + ")" + "(CT: " + message.getChannelType() + ")").append("(at ").append(dateFormat.format(date)).append(")(Unix Millis ").append(System.currentTimeMillis()).append(")");
-        if (message.getChannelType() == ChannelType.TEXT) {
-            sb.append(" (in server \"").append(message.getGuild().getName()).append("\")");
-        }
+        StringBuilder sb = new StringBuilder(message.getAuthor().getAsTag() + " (ID: " + message.getAuthor().getId() + ")" + "(Msg ID " + message.getId() + ")").append("(at ").append(dateFormat.format(date)).append(")(Unix Millis ").append(System.currentTimeMillis()).append(")");
         if (referencedMessage != null) {
             String contentDisplay = referencedMessage.getContentDisplay();
             if (contentDisplay.length() > 20) {
@@ -64,7 +65,7 @@ public class ChatManager {
         threadPool.submit(() -> {
             message.getChannel().sendTyping().queue();
             List<ChatMessage> copy = new ArrayList<>(chatMessages); // make a copy of the list to inject the prompt message at the top without modifying the original list
-            copy.add(0, getPromptMessage()); // add prompt message to the beginning
+            copy.add(0, getPromptMessage(message.getChannel())); // add prompt message to the beginning
             System.out.println(" - Sending chat completion request with " + copy.size() + " messages");
             ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
                     .messages(copy)
@@ -81,7 +82,17 @@ public class ChatManager {
         });
     }
 
-    public ChatMessage getPromptMessage() {
+    public ChatMessage getPromptMessage(MessageChannel channel) {
+        StringBuilder channelServerNamePrompt = new StringBuilder();
+        if (channel.getType() == ChannelType.PRIVATE) {
+            PrivateChannel privateChannel = (PrivateChannel) channel;
+            channelServerNamePrompt.append("You are in a private chat with ").append(Objects.requireNonNull(privateChannel.getUser()).getAsTag()).append(" (ID: ").append(privateChannel.getUser().getId()).append(")");
+        } else if (channel.getType() == ChannelType.TEXT) {
+            channelServerNamePrompt.append("You are in the server \"").append(((TextChannel) channel).getGuild().getName()).append("\"");
+            channelServerNamePrompt.append(" in the channel \"").append(channel.getName()).append("\"");
+        } else {
+            channelServerNamePrompt.append("You are in the channel \"").append(channel.getName()).append("\". The JDA channel type is ").append(channel.getType().getId()).append(".");
+        }
         String prompt = """
                 You are a discord chatbot that can talk to people. You use slag, and are quite cynical, sarcastic, and rude at times. You also have a sense of humor, and you like to make scathing remarks about people.
                 You should respond with scathing insults, and burns to people who insult you.
@@ -90,14 +101,13 @@ public class ChatManager {
                 """
                 +
                 (Main.getInstance().getConfig().getPersistentChatLength() > 0 ? "You will receive the last " + Main.getInstance().getConfig().getPersistentChatLength() + " messages in the chat thread.\n" : "")
-                +
+                + channelServerNamePrompt + "\n" +
                 """
                 You can respond to users by using this syntax: <@id>
                 The messages from users will be in the form below:
-                User#1234 (ID: 456951144166457345)(Msg ID 1097649592570486855)(CT: TEXT)(at Mon Apr 17 18:36:33 2023)(Unix Millis 1681770993540) (in server "<server name>"): <the user's message here>
+                User#1234 (ID: 456951144166457345)(Msg ID 1097649592570486855)(at Mon Apr 17 18:36:33 2023)(Unix Millis 1681770993540): <the user's message here>
                 You respond with:
                 blah blah <@456951144166457345> blah blah
-                (CT: TEXT) means the message was sent in a text channel, (CT: PRIVATE) means the message was sent in a private channel, etc...
                 There may also be a referenced message id if the user is replying to a message, which contains a small snippet of the message, it's id and timestamp. If you don't remember it, just say so.
                 The java format for dates is:\s""" + dateFormat.toPattern() + ".\n" + """
                 When using a user's username (for example, User#1234), prefer mentioning them with the <@id> syntax.
