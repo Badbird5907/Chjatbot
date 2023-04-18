@@ -6,6 +6,7 @@ import chatbot.objects.Config;
 import chatbot.storage.StorageProvider;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.reflect.TypeToken;
 import com.theokanning.openai.service.OpenAiService;
 import lombok.Getter;
@@ -78,9 +79,14 @@ public class Main {
                 String gpt4Data;
                 try {
                     gpt4Data = new String(Files.readAllBytes(gpt4File.toPath()));
-                    Type type = new TypeToken<HashSet<Long>>() {
-                    }.getType();
-                    gpt4Channels = new HashSet<>(Main.getGson().fromJson(gpt4Data, type));
+                    // Type type = new TypeToken<HashSet<Long>>() {
+                    // }.getType();
+                    // gpt4Channels = Main.getGson().fromJson(gpt4Data, type);
+                    gpt4Channels.clear();
+                    JsonArray array = Main.getGson().fromJson(gpt4Data, JsonArray.class);
+                    for (int i = 0; i < array.size(); i++) {
+                        gpt4Channels.add(array.get(i).getAsLong());
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
