@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.regex.Pattern;
 
 public class ChatManager {
     @Getter
@@ -68,6 +69,7 @@ public class ChatManager {
         askChatGpt(message, chatMessages);
     }
 
+    private static final Pattern ROLE_MENTION_PATTERN = Pattern.compile("<@&?(\\d+)>");
     public void askChatGpt(Message message, List<ChatMessage> chatMessages) {
         threadPool.submit(() -> {
             message.getChannel().sendTyping().queue();
@@ -83,7 +85,10 @@ public class ChatManager {
             ChatCompletionResult completion = Main.getInstance().getOpenAiService().createChatCompletion(completionRequest);
             completion.getChoices().forEach(o -> System.out.println(" - Response: " + o.getMessage().getContent()));
             String response = completion.getChoices().get(0).getMessage().getContent();
-            message.reply(response.replace("%ANSI_ESCAPE%", "\u001B")).queue();
+            // remove @ mentions
+            String safeResponse = ROLE_MENTION_PATTERN.matcher(response).replaceAll("`<@MENTION_REDACTED>`").replace("@everyone", "@ everyone")
+                    .replace("@here", "@ here");
+            message.reply(safeResponse.replace("%ANSI_ESCAPE%", "\u001B")).queue();
             chatMessages.add(new ChatMessage(ChatMessageRole.ASSISTANT.value(), response));
             Main.getInstance().getStorageProvider().save(message.getChannel().getIdLong(), chatMessages);
         });
