@@ -76,7 +76,7 @@ public class ChatManager {
             ChatCompletionResult completion = Main.getInstance().getOpenAiService().createChatCompletion(completionRequest);
             completion.getChoices().forEach(o -> System.out.println(" - Response: " + o.getMessage().getContent()));
             String response = completion.getChoices().get(0).getMessage().getContent();
-            message.reply(response).queue();
+            message.reply(response.replace("%ANSI_ESCAPE%", "\u001B")).queue();
             chatMessages.add(new ChatMessage(ChatMessageRole.ASSISTANT.value(), response));
             Main.getInstance().getStorageProvider().save(message.getChannel().getIdLong(), chatMessages);
         });
@@ -116,9 +116,9 @@ public class ChatManager {
                 ```tsx
                 <button className={'btn btn-primary'}>Click me!</button>
                 ```
-                Also, ANSI escape codes are supported in code blocks:
+                Also, ANSI escape codes are supported in code blocks, just use %ANSI_ESCAPE% in the place of a ansi escape code:
                 ```ansi
-                \u001B[31mThis is red text\u001B[0m
+                %ANSI_ESCAPE%[31mThis is red text%ANSI_ESCAPE%[0m
                 ```
                 You can also use inline code blocks like this: `print('Hello world!')`
                 You can also use blockquotes like this:
