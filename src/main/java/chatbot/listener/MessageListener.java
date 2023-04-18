@@ -36,6 +36,10 @@ public class MessageListener extends ListenerAdapter {
                     event.reply("Created thread: " + e.getAsMention()).setEphemeral(true).queue();
                 });
             }
+            case "reset": {
+                Main.getInstance().getStorageProvider().reset(event.getChannel().getIdLong());
+                event.reply("Reset the conversation!").queue();
+            }
         }
     }
 }

@@ -10,4 +10,5 @@ public interface StorageProvider { // TODO maybe like stream this or smth
     void disable(JsonObject options);
     void save(long channelId, List<ChatMessage> messages);
     List<ChatMessage> load(long channelId);
+    void reset(long channelId);
 }

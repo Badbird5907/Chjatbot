@@ -60,4 +60,10 @@ public class FileStorageProvider implements StorageProvider {
         sizedList.addAll(list);
         return sizedList;
     }
+
+    @Override
+    public void reset(long channelId) {
+        File file = new File(dataFolder, channelId + ".json");
+        if (file.exists()) file.delete();
+    }
 }

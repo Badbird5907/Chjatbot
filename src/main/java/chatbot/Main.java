@@ -80,6 +80,12 @@ public class Main {
                         "Creates a new thread"
                 )
         );
+        slashCommands.add(
+                Commands.slash(
+                        "reset",
+                        "Reset chat history, useful if the bot becomes too nice"
+                )
+        );
         for (Guild guild : jda.getGuilds()) {
             guild.updateCommands().addCommands(slashCommands).queue();
         }
