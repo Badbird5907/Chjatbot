@@ -13,6 +13,8 @@ public class MessageListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         System.out.println("Message received from " + event.getAuthor().getAsTag() + ": " + event.getMessage().getContentRaw());
+        // ignore itself
+        if (event.getAuthor().getIdLong() == event.getJDA().getSelfUser().getIdLong()) return;
         ChatManager.getInstance().onMessageReceived(event.getMessage());
     }
 
