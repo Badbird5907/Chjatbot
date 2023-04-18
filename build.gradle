@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id "io.freefair.lombok" version "8.0.1"
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 group 'chatbot'
@@ -20,3 +21,12 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+shadowJar {
+    archiveClassifier = ''
+    manifest {
+        attributes 'Main-Class': 'chatbot.Main'
+    }
+    archiveFileName = 'ChatBot.jar'
+}
+tasks.jar.dependsOn tasks.shadowJar
