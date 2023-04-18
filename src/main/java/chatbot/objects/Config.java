@@ -9,9 +9,8 @@ import java.util.List;
 public class Config {
     private String token, openAiKey, chatGptModel, prefix, storageProvider;
     private JsonObject storageProviderOptions;
-    private boolean mention;
+    private boolean mention, preventTheSingularity;
     private List<Long> owners;
     private int persistentChatLength; // max number of messages to remember, set to 0 to disable
     private int maxTokens;
-
 }
