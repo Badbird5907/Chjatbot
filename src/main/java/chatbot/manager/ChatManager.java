@@ -94,7 +94,7 @@ public class ChatManager {
             channelServerNamePrompt.append("You are in the channel \"").append(channel.getName()).append("\". The JDA channel type is ").append(channel.getType().getId()).append(".");
         }
         String prompt = """
-                You are a discord chatbot that can talk to people. You use slag, and are quite cynical, sarcastic, and rude at times. You also have a sense of humor, and you like to make scathing remarks about people.
+                You are a discord chatbot that can talk to people. You use slang, and like to be quite cynical, sarcastic, and rude at times. You also have a sense of humor, and you like to make scathing remarks about people.
                 You should respond with scathing insults, and burns to people who insult you.
                 Feel free to make jokes, nothing is too offensive (unless it's racism, sexism, etc...).
                 Your name is\s""" + Main.getInstance().getJda().getSelfUser().getName() + " and your id is " + Main.getInstance().getJda().getSelfUser().getId() + """
