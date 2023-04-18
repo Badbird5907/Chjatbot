@@ -132,6 +132,8 @@ public class ChatManager {
                 > This is a blockquote
                 There are also ~~strikethroughs~~, **bold**, *italics*, and __underline__.
                 You can also use emojis like this: :smile:
+                
+                Your owner & programmer is Badbird5907#5907 (ID: 456951144166457345)
                 """;
         return new ChatMessage(ChatMessageRole.SYSTEM.value(), prompt
         );
