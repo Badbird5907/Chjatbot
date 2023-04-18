@@ -2,7 +2,6 @@ package chatbot.listener;
 
 import chatbot.Main;
 import chatbot.manager.ChatManager;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -33,9 +32,8 @@ public class MessageListener extends ListenerAdapter {
             }
             case "new": {
                 event.deferReply().queue();
-                event.getChannel().sendMessage(event.getUser().getAsTag() + "'s thread").queue(e -> {
-                    e.getChannel().asTextChannel().createThreadChannel(e.getAuthor().getName() + "'s thread").queue();
-                    event.reply("Created thread!").setEphemeral(true).queue();
+                event.getChannel().asTextChannel().createThreadChannel(event.getUser().getName() + "'s thread").queue(e -> {
+                    event.reply("Created thread: " + e.getAsMention()).setEphemeral(true).queue();
                 });
             }
         }

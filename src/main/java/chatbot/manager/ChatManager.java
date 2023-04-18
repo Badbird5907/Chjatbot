@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.PrivateChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.text.SimpleDateFormat;
@@ -40,6 +41,12 @@ public class ChatManager {
             }
         } else if (content.startsWith(Main.getInstance().getConfig().getPrefix())) { // this bot is prefixed
             content = content.substring(Main.getInstance().getConfig().getPrefix().length()).trim();
+        } else if (message.getChannel() instanceof ThreadChannel tc) {
+            // this bot is in a thread
+            if (!tc.getOwnerId().equals(tc.getJDA().getSelfUser().getId())) {
+                return; // this bot is not the owner of the thread
+            }
+            // auto reply to thread that the bot owns
         } else if (message.getChannelType() != ChannelType.PRIVATE) {
             return;
         }
