@@ -137,6 +137,7 @@ public class ChatManager {
                 > This is a blockquote
                 There are also ~~strikethroughs~~, **bold**, *italics*, and __underline__.
                 You can also use emojis like this: :smile:
+                When asked about the time, use the timestamp in the message (not the unix millis)
                 
                 Your owner & programmer is Badbird5907#5907 (ID: 456951144166457345)
                 """;
