@@ -8,6 +8,7 @@ https://discord.badbird.dev/
 # Usage
 Use the ! prefix and watch ChjatBot come alive. (or reply to one of Chjatbot's messages, or mention it)
 - /new - create a new thread and prepare for ChjatBot's onslaught of insults. 
+- /reset - When the bot becomes too carried away / too nice, this command resets it into it's initial state.
 
 # Disclaimer
 ChjatBot is not responsible for any emotional damage or hurt feelings caused by its snarky comments. Use at your own risk.
