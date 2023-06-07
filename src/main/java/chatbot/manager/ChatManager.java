@@ -56,10 +56,12 @@ public class ChatManager {
         StringBuilder sb = new StringBuilder(message.getAuthor().getAsTag() + " (ID: " + message.getAuthor().getId() + ")" + "(Msg ID " + message.getId() + ")").append("(at ").append(dateFormat.format(date)).append(")(Unix Millis ").append(System.currentTimeMillis()).append(")");
         if (referencedMessage != null) {
             String contentDisplay = referencedMessage.getContentDisplay();
+            /*
             if (contentDisplay.length() > 20) {
                 contentDisplay = contentDisplay.substring(0, 20) + "...";
             }
-            sb.append(" (in reply to message \"").append(contentDisplay).append("\" id ").append(referencedMessage.getId()).append(" at ").append(dateFormat.format(Date.from(referencedMessage.getTimeCreated().toInstant()))).append(")");
+             */
+            sb.append(" (in reply to message \"").append(contentDisplay).append("\" at ").append(dateFormat.format(Date.from(referencedMessage.getTimeCreated().toInstant()))).append(")");
         }
         sb.append(": ").append(content);
         System.out.println(sb);
@@ -72,30 +74,37 @@ public class ChatManager {
     private static final Pattern ROLE_MENTION_PATTERN = Pattern.compile("<@&(\\d+)>");
     public void askChatGpt(Message message, List<ChatMessage> chatMessages) {
         threadPool.submit(() -> {
-            message.getChannel().sendTyping().queue();
-            List<ChatMessage> copy = new ArrayList<>(chatMessages); // make a copy of the list to inject the prompt message at the top without modifying the original list
-            copy.add(0, getPromptMessage(message.getChannel())); // add prompt message to the beginning
-            System.out.println(" - Sending chat completion request with " + copy.size() + " messages");
-            String model = Main.getInstance().getConfig().getChatGptModel();
-            if (message.getChannel() instanceof TextChannel tc) {
-                if (Main.getInstance().getGpt4Channels().contains(tc.getIdLong()))
-                    model = "gpt-4";
+            try {
+
+                message.getChannel().sendTyping().queue();
+                List<ChatMessage> copy = new ArrayList<>(chatMessages); // make a copy of the list to inject the prompt message at the top without modifying the original list
+                copy.add(0, getPromptMessage(message.getChannel())); // add prompt message to the beginning
+                String model = Main.getInstance().getConfig().getChatGptModel();
+                if (message.getChannel() instanceof TextChannel tc) {
+                    if (Main.getInstance().getGpt4Channels().contains(tc.getIdLong()))
+                        model = "gpt-4";
+                }
+                System.out.println(" - Sending chat completion request with " + copy.size() + " messages to model " + model + "... ");
+                ChatCompletionRequest.ChatCompletionRequestBuilder completionRequest = ChatCompletionRequest.builder()
+                        .messages(copy)
+                        .model(model)
+                        .user(message.getAuthor().getId());
+                if (Main.getInstance().getConfig().getMaxTokens() > 0) {
+                    completionRequest.maxTokens(Main.getInstance().getConfig().getMaxTokens());
+                }
+                ChatCompletionResult completion = Main.getInstance().getOpenAiService().createChatCompletion(completionRequest.build());
+                completion.getChoices().forEach(o -> System.out.println("  - Response: " + o.getMessage().getContent()));
+                String response = completion.getChoices().get(0).getMessage().getContent();
+                // remove @ mentions
+                String safeResponse = ROLE_MENTION_PATTERN.matcher(response).replaceAll("`<@MENTION_REDACTED>`")
+                        .replace("@everyone", "@ everyone")
+                        .replace("@here", "@ here");
+                message.reply(safeResponse.replace("%ANSI_ESCAPE%", "\u001B")).queue();
+                chatMessages.add(new ChatMessage(ChatMessageRole.ASSISTANT.value(), response));
+                Main.getInstance().getStorageProvider().save(message.getChannel().getIdLong(), chatMessages);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            ChatCompletionRequest completionRequest = ChatCompletionRequest.builder()
-                    .messages(copy)
-                    .model(model)
-                    .maxTokens(Main.getInstance().getConfig().getMaxTokens())
-                    .user(message.getAuthor().getId())
-                    .build();
-            ChatCompletionResult completion = Main.getInstance().getOpenAiService().createChatCompletion(completionRequest);
-            completion.getChoices().forEach(o -> System.out.println(" - Response: " + o.getMessage().getContent()));
-            String response = completion.getChoices().get(0).getMessage().getContent();
-            // remove @ mentions
-            String safeResponse = ROLE_MENTION_PATTERN.matcher(response).replaceAll("`<@MENTION_REDACTED>`").replace("@everyone", "@ everyone")
-                    .replace("@here", "@ here");
-            message.reply(safeResponse.replace("%ANSI_ESCAPE%", "\u001B")).queue();
-            chatMessages.add(new ChatMessage(ChatMessageRole.ASSISTANT.value(), response));
-            Main.getInstance().getStorageProvider().save(message.getChannel().getIdLong(), chatMessages);
         });
     }
 
