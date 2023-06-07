@@ -104,6 +104,7 @@ public class ChatManager {
                 Main.getInstance().getStorageProvider().save(message.getChannel().getIdLong(), chatMessages);
             } catch (Exception e) {
                 e.printStackTrace();
+                message.reply("An error occurred while processing your request. Please try again later.").queue();
             }
         });
     }
